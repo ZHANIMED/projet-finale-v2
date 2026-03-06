@@ -34,6 +34,7 @@ export default function CategoryFormModal({ initial, onClose, onSaved }) {
       const fd = new FormData();
       fd.append("name", name.trim());
       if (file) fd.append("image", file); // ✅ nom du champ = "image"
+      else if (!preview) fd.append("image", ""); // ✅ Si preview vide, on supprime l'image côté serveur
 
       if (isEdit) {
         await api.put(`/categories/${initial._id}`, fd, {
@@ -49,7 +50,8 @@ export default function CategoryFormModal({ initial, onClose, onSaved }) {
       onClose?.();
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de l'enregistrement");
+      const msg = err.response?.data?.message || "Erreur lors de l'enregistrement";
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -86,26 +88,51 @@ export default function CategoryFormModal({ initial, onClose, onSaved }) {
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
             {preview && (
-              <div style={{ marginTop: 10 }}>
+              <div style={{ marginTop: 15, position: "relative", display: "inline-block" }}>
                 <img
                   src={preview}
                   alt="preview"
-                  style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 12 }}
+                  style={{ width: "100%", maxHeight: 250, objectFit: "cover", borderRadius: 16, border: "1px solid #eee" }}
                 />
+                <button
+                  type="button"
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    background: "rgba(255, 255, 255, 0.9)",
+                    color: "#ef4444",
+                    border: "1px solid #fee2e2",
+                    borderRadius: "12px",
+                    padding: "8px 12px",
+                    fontSize: "12px",
+                    fontWeight: "900",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#ef4444";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.9)";
+                    e.currentTarget.style.color = "#ef4444";
+                  }}
+                  onClick={() => {
+                    setFile(null);
+                    setPreview("");
+                    // Vider l'input file physiquement
+                    const fileInput = document.querySelector('.customFileInput');
+                    if (fileInput) fileInput.value = "";
+                  }}
+                >
+                  🗑️ Retirer l'image
+                </button>
               </div>
-            )}
-            {isEdit && initial?.image && (
-              <button
-                type="button"
-                className="ecoBtn ghost"
-                style={{ marginTop: 10 }}
-                onClick={() => {
-                  setFile(null);
-                  setPreview(""); // optionnel : enlever image côté UI (à toi de gérer côté backend)
-                }}
-              >
-                Retirer l'image (UI)
-              </button>
             )}
           </div>
 

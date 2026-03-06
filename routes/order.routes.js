@@ -5,9 +5,14 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const {
+    sendOrderConfirmation,
+    sendAdminOrderAlert,
+    sendAdminLowStockAlert,
+} = require("../config/mailer");
 
 // POST /api/orders
-// Créer une commande + décrémenter le stock
+// Créer une commande + décrémenter le stock + envoyer emails
 router.post("/", isAuth, async (req, res, next) => {
     try {
         const { items, total, shippingAddress, phone } = req.body;
@@ -16,7 +21,8 @@ router.post("/", isAuth, async (req, res, next) => {
             return res.status(400).json({ message: "Le panier est vide" });
         }
 
-        // 1. Décrémenter le stock
+        // 1. Décrémenter le stock + détecter les produits à 0
+        const outOfStockProducts = [];
         for (const item of items) {
             const product = await Product.findById(item.id || item.product);
             if (product) {
@@ -25,12 +31,16 @@ router.post("/", isAuth, async (req, res, next) => {
                 }
                 product.stock -= item.qty;
                 await product.save();
+                // Détecter stock = 0
+                if (product.stock === 0) {
+                    outOfStockProducts.push(product);
+                }
             }
         }
 
         // 2. Créer la commande
         const newOrder = new Order({
-            user: req.user.id, // isAuth met { id, isAdmin } dans req.user
+            user: req.user.id,
             items: items.map(x => ({
                 product: x.id || x.product,
                 title: x.title,
@@ -45,6 +55,20 @@ router.post("/", isAuth, async (req, res, next) => {
         });
 
         await newOrder.save();
+
+        // 3. Récupérer les données utilisateur pour les emails
+        const userDoc = await User.findById(req.user.id).select("name email");
+
+        // 4. Envoyer emails (non-bloquants)
+        if (userDoc) {
+            sendOrderConfirmation(userDoc, newOrder);
+            sendAdminOrderAlert(userDoc, newOrder);
+        }
+
+        // 5. Alerte stock = 0 si applicable
+        if (outOfStockProducts.length > 0) {
+            sendAdminLowStockAlert(outOfStockProducts);
+        }
 
         res.status(201).json({ message: "Commande validée avec succès", order: newOrder });
     } catch (error) {
@@ -128,11 +152,9 @@ router.get("/stats/sales", isAuth, isAdmin, async (req, res, next) => {
 // GET /api/orders - Récupérer toutes les commandes (Admin)
 router.get("/", isAuth, isAdmin, async (req, res, next) => {
     try {
-        // Peupler l'utilisateur (optionnel mais utile pour le nom/email)
         const orders = await Order.find()
             .populate("user", "name email")
             .sort({ createdAt: -1 });
-
         res.status(200).json(orders);
     } catch (error) {
         next(error);

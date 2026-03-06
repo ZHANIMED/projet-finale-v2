@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../JS/redux/slices/authSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -14,7 +15,12 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     const res = await dispatch(login({ email, password }));
-    if (res.meta.requestStatus === "fulfilled") navigate("/");
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success("✅ Connexion réussie !", { autoClose: 2000 });
+      navigate("/");
+    } else {
+      toast.error(`❌ ${res.payload || "Identifiants incorrects"}`);
+    }
   };
 
   return (

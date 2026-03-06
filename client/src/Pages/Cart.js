@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { changeQty, removeFromCart, clearCart } from "../JS/redux/slices/cartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../JS/api/axios";
+import { toast } from "react-toastify";
+
 
 export default function Cart() {
   const dispatch = useDispatch();
@@ -20,7 +22,7 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     if (!user) {
-      alert("Veuillez vous connecter pour valider votre commande.");
+      toast.warning("🔒 Veuillez vous connecter pour valider votre commande.");
       navigate("/login");
       return;
     }
@@ -44,7 +46,10 @@ export default function Cart() {
       });
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Erreur lors de la validation de la commande");
+      toast.error(`❌ ${error.response?.data?.message || "Erreur lors de la validation de la commande"}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 

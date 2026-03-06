@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../JS/redux/slices/productSlice";
 import { fetchCategories } from "../../JS/redux/slices/categorySlice";
 import ProductFormModal from "./ProductFormModal";
+import ConfirmModal from "../../Components/ConfirmModal";
+import { toast } from "react-toastify";
 
 export default function AdminProducts() {
   const dispatch = useDispatch();
@@ -12,6 +14,7 @@ export default function AdminProducts() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const formatTND = (price) => {
     const tnd = Number(price) || 0;
@@ -23,10 +26,17 @@ export default function AdminProducts() {
     dispatch(fetchProducts({}));
   }, [dispatch]);
 
-  const remove = async (id) => {
-    if (!window.confirm("Supprimer ?")) return;
-    await api.delete(`/products/${id}`);
-    dispatch(fetchProducts({}));
+  const handleRemove = async () => {
+    if (!confirmDelete) return;
+    try {
+      await api.delete(`/products/${confirmDelete}`);
+      dispatch(fetchProducts({}));
+      toast.success("🗑️ Produit supprimé avec succès", { autoClose: 2000 });
+    } catch {
+      toast.error("❌ Erreur lors de la suppression");
+    } finally {
+      setConfirmDelete(null);
+    }
   };
 
   return (
@@ -54,8 +64,6 @@ export default function AdminProducts() {
             />
             <div className="cardBody">
               <div className="cardTitle">{p.title}</div>
-
-              {/* ✅ 3 chiffres après virgule + conversion */}
               <div className="muted">{formatTND(p.price)}</div>
 
               <div className="adminActions">
@@ -68,7 +76,7 @@ export default function AdminProducts() {
                 >
                   ✏️
                 </button>
-                <button className="btn" onClick={() => remove(p._id)}>
+                <button className="btn" onClick={() => setConfirmDelete(p._id)}>
                   🗑️
                 </button>
               </div>
@@ -83,6 +91,17 @@ export default function AdminProducts() {
           initial={editing}
           onClose={() => setOpen(false)}
           onSaved={() => dispatch(fetchProducts({}))}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Supprimer le produit ?"
+          message="Êtes-vous sûr de vouloir supprimer cet article ? Cette action est définitive."
+          onConfirm={handleRemove}
+          onCancel={() => setConfirmDelete(null)}
+          confirmText="Supprimer"
+          danger={true}
         />
       )}
     </div>

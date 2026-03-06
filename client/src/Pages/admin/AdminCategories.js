@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import api from "../../JS/api/axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../../JS/redux/slices/categorySlice";
-import CategoryFormModal from "./CategoryFormModal"; // ✅ PAS ProductFormModal
+import CategoryFormModal from "./CategoryFormModal";
+import ConfirmModal from "../../Components/ConfirmModal";
+import { toast } from "react-toastify";
 
 export default function AdminCategories() {
   const dispatch = useDispatch();
@@ -10,15 +12,23 @@ export default function AdminCategories() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // ID de la catégorie à supprimer
 
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const remove = async (id) => {
-    if (!window.confirm("Supprimer ?")) return;
-    await api.delete(`/categories/${id}`);
-    dispatch(fetchCategories());
+  const handleRemove = async () => {
+    if (!confirmDelete) return;
+    try {
+      await api.delete(`/categories/${confirmDelete}`);
+      dispatch(fetchCategories());
+      toast.success("🗑️ Catégorie supprimée");
+    } catch (err) {
+      toast.error("❌ Erreur lors de la suppression");
+    } finally {
+      setConfirmDelete(null);
+    }
   };
 
   return (
@@ -57,7 +67,7 @@ export default function AdminCategories() {
                 >
                   ✏️
                 </button>
-                <button className="btn" onClick={() => remove(c._id)}>
+                <button className="btn" onClick={() => setConfirmDelete(c._id)}>
                   🗑️
                 </button>
               </div>
@@ -71,6 +81,17 @@ export default function AdminCategories() {
           initial={editing}
           onClose={() => setOpen(false)}
           onSaved={() => dispatch(fetchCategories())}
+        />
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Supprimer la catégorie ?"
+          message="Cette action est irréversible. Toutes les données associées seront perdues."
+          onConfirm={handleRemove}
+          onCancel={() => setConfirmDelete(null)}
+          confirmText="Supprimer"
+          danger={true}
         />
       )}
     </div>

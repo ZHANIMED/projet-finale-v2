@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../JS/redux/slices/authSlice";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Register() {
   const dispatch = useDispatch();
@@ -15,7 +16,12 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     const res = await dispatch(register({ name, email, password }));
-    if (res.meta.requestStatus === "fulfilled") navigate("/");
+    if (res.meta.requestStatus === "fulfilled") {
+      toast.success("🎉 Compte créé avec succès ! Bienvenue !", { autoClose: 2500 });
+      navigate("/");
+    } else {
+      toast.error(`❌ ${res.payload || "Erreur lors de l'inscription"}`);
+    }
   };
 
   return (

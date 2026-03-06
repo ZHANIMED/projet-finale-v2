@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-import { fetchCategories } from "../JS/redux/slices/categorySlice"; // ✅ bon chemin
-import CategoryCard from "../Components/CategoryCard"; // ✅ C majuscule
+import { fetchCategories } from "../JS/redux/slices/categorySlice";
+import CategoryCard from "../Components/CategoryCard";
 import { Link } from "react-router-dom";
+import logo from "../assets/MYECODECO.png";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -24,6 +24,9 @@ export default function Home() {
           </Link>
         </div>
         <div className="heroRight" />
+
+        {/* ✅ LOGO SOCIETE EN BAS A DROITE */}
+        <img src={logo} alt="Logo" className="heroLogo" />
       </section>
 
       <h2 className="sectionTitle">Nos Catégories</h2>

@@ -36,7 +36,17 @@ export default function Navbar() {
         {!user ? (
           <NavLink to="/login" className="iconBtn">👤</NavLink>
         ) : (
-          <NavLink to="/profile" className="iconBtn">👤</NavLink>
+          <NavLink to="/profile" className="iconBtn" style={{ padding: 0, overflow: "hidden" }}>
+            {user.photo ? (
+              <img
+                src={user.photo}
+                alt={user.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              "👤"
+            )}
+          </NavLink>
         )}
 
         <NavLink to="/cart" className="iconBtn">

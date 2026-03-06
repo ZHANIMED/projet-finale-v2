@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-console.log("SCRT_KEY:", process.env.SCRT_KEY);
 const express = require("express");
 const cors = require("cors");
 const path = require("path"); // ✅ AJOUTER

@@ -46,11 +46,15 @@ export default function ProductFormModal({ initial, categories = [], onClose, on
       fd.append("title", title.trim());
       fd.append("description", description.trim());
       fd.append("price", Number(price));
+
       if (file) {
         fd.append("image", file);
-      } else if (image) {
+      } else if (preview) {
         fd.append("image", image.trim());
+      } else {
+        fd.append("image", ""); // ✅ Supprime l'image
       }
+
       fd.append("category", category);
       fd.append("stock", Number(stock) || 0);
 
@@ -63,7 +67,8 @@ export default function ProductFormModal({ initial, categories = [], onClose, on
       onClose?.();
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de l'enregistrement");
+      const msg = err.response?.data?.message || "Erreur lors de l'enregistrement";
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -115,8 +120,50 @@ export default function ProductFormModal({ initial, categories = [], onClose, on
               />
             </div>
             {preview && (
-              <div style={{ marginTop: 10 }}>
-                <img src={preview} alt="preview" style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }} />
+              <div style={{ marginTop: 15, position: "relative", display: "inline-block" }}>
+                <img
+                  src={preview}
+                  alt="preview"
+                  style={{ width: "100%", maxHeight: 250, objectFit: "cover", borderRadius: 16, border: "1px solid #eee" }}
+                />
+                <button
+                  type="button"
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    background: "rgba(255, 255, 255, 0.9)",
+                    color: "#ef4444",
+                    border: "1px solid #fee2e2",
+                    borderRadius: "12px",
+                    padding: "8px 12px",
+                    fontSize: "12px",
+                    fontWeight: "900",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#ef4444";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.9)";
+                    e.currentTarget.style.color = "#ef4444";
+                  }}
+                  onClick={() => {
+                    setFile(null);
+                    setPreview("");
+                    setImage("");
+                    const fileInput = document.querySelector('.customFileInput');
+                    if (fileInput) fileInput.value = "";
+                  }}
+                >
+                  🗑️ Retirer l'image
+                </button>
               </div>
             )}
           </div>
