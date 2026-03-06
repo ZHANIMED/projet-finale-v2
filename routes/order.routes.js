@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const User = require("../models/User");
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
 
@@ -46,6 +47,58 @@ router.post("/", isAuth, async (req, res, next) => {
         await newOrder.save();
 
         res.status(201).json({ message: "Commande validée avec succès", order: newOrder });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// GET /api/orders/admin/dashboard-stats - Stats globales pour le dashboard (Admin)
+router.get("/admin/dashboard-stats", isAuth, isAdmin, async (req, res, next) => {
+    try {
+        const totalOrders = await Order.countDocuments();
+        const totalProducts = await Product.countDocuments();
+        const totalUsers = await User.countDocuments();
+
+        const revenueData = await Order.aggregate([
+            { $group: { _id: null, totalRevenue: { $sum: "$total" } } }
+        ]);
+        const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+        const recentOrders = await Order.find()
+            .populate("user", "name")
+            .sort({ createdAt: -1 })
+            .limit(5);
+
+        // Sales over time (6 derniers mois)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const salesOverTime = await Order.aggregate([
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        year: { $year: "$createdAt" }
+                    },
+                    totalSales: { $sum: "$total" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        res.status(200).json({
+            totalOrders,
+            totalProducts,
+            totalUsers,
+            totalRevenue,
+            recentOrders,
+            salesOverTime: salesOverTime.map(s => ({
+                name: `${s._id.month}/${s._id.year}`,
+                sales: s.totalSales
+            }))
+        });
     } catch (error) {
         next(error);
     }

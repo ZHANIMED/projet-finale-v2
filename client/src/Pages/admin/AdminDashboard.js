@@ -6,9 +6,10 @@ export default function AdminDashboard() {
     <div className="container">
       <h1>Admin</h1>
       <div className="grid2">
-        <Link className="panel linkPanel" to="/admin/products">Gérer les produits</Link>
-        <Link className="panel linkPanel" to="/admin/categories">Gérer les catégories</Link>
+        <Link className="panel linkPanel" to="/admin/stats">Statistiques</Link>
         <Link className="panel linkPanel" to="/admin/orders">Suivi des ventes</Link>
+        <Link className="panel linkPanel" to="/admin/products">Produits</Link>
+        <Link className="panel linkPanel" to="/admin/categories">Catégories</Link>
       </div>
     </div>
   );
