@@ -1,0 +1,158 @@
+/* =========================
+   Navbar - Premium / Glass
+========================= */
+.nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+
+  padding:12px 22px;
+
+  /* glass effect */
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  box-shadow:0 12px 28px rgba(0,0,0,0.06);
+}
+
+/* brand */
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+}
+
+/* logo */
+.logo{
+  height:56px;          /* ✅ taille premium */
+  width:auto;
+  object-fit:contain;
+  display:block;
+}
+
+/* links */
+.links{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.links a{
+  padding:10px 12px;
+  border-radius:12px;
+  text-decoration:none;
+  color:#5f6368;
+  font-weight:800;
+  letter-spacing:0.2px;
+  transition:background .2s ease, color .2s ease, transform .2s ease;
+}
+
+.links a:hover{
+  background:rgba(0,0,0,0.06);
+  color:#111;
+  transform:translateY(-1px);
+}
+
+.links a.active{
+  background:rgba(0,0,0,0.08);
+  color:#111;
+}
+
+/* actions (icônes) */
+.actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* bouton icône (profil / panier) */
+.iconBtn{
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:14px;
+  background:rgba(255,255,255,0.70);
+  border:1px solid rgba(0,0,0,0.08);
+
+  text-decoration:none;
+  color:#111;
+  position:relative;
+  font-size:20px;
+
+  box-shadow:0 10px 22px rgba(0,0,0,0.06);
+  transition:transform .2s ease, background .2s ease;
+}
+
+.iconBtn:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,0.92);
+}
+
+/* badge panier */
+.badge{
+  position:absolute;
+  top:-7px;
+  right:-7px;
+
+  min-width:20px;
+  height:20px;
+  padding:0 6px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#111;
+  color:#fff;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+
+  border:2px solid rgba(255,255,255,0.85);
+}
+
+/* bouton logout */
+.linkBtn{
+  height:44px;
+  padding:0 14px;
+
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+
+  background:rgba(0,0,0,0.06);
+  color:#111;
+  font-weight:900;
+
+  transition:transform .2s ease, background .2s ease;
+}
+
+.linkBtn:hover{
+  transform:translateY(-2px);
+  background:rgba(0,0,0,0.10);
+}
+
+/* responsive */
+@media(max-width:900px){
+  .nav{padding:10px 14px}
+  .logo{height:50px}
+  .links a{padding:9px 10px}
+}
+
+@media(max-width:650px){
+  .links{display:none}   /* ✅ mobile: on cache les liens (tu peux faire un menu burger plus tard) */
+  .logo{height:48px}
+  .iconBtn{width:42px;height:42px}
+  .linkBtn{height:42px}
+}

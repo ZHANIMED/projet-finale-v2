@@ -1,0 +1,216 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { updateProfile } from "../JS/redux/slices/authSlice";
+
+export default function Profile() {
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector((s) => s.auth);
+
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(user?.name || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [address, setAddress] = useState(user?.address || "");
+
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(user?.photo || "");
+
+  const fallbackAvatar = useMemo(() => "https://i.pravatar.cc/160?img=12", []);
+
+  // ✅ si user change (reload/login), on resync
+  useEffect(() => {
+    setName(user?.name || "");
+    setPhone(user?.phone || "");
+    setAddress(user?.address || "");
+    setAvatarPreview(user?.photo || "");
+    setAvatarFile(null);
+  }, [user]);
+
+  // ✅ clean object url
+  useEffect(() => {
+    return () => {
+      if (avatarPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
+  const onPickAvatar = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Veuillez choisir une image (png, jpg, jpeg, webp).");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image trop grande. Max 2MB.");
+      return;
+    }
+
+    // revoke old blob
+    if (avatarPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const onCancel = () => {
+    setEditing(false);
+    setName(user?.name || "");
+    setPhone(user?.phone || "");
+    setAddress(user?.address || "");
+    setAvatarFile(null);
+
+    // remove preview blob
+    if (avatarPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+    setAvatarPreview(user?.photo || "");
+  };
+
+  const onSave = async () => {
+    const fd = new FormData();
+    fd.append("name", name.trim());
+    fd.append("phone", phone.trim());
+    fd.append("address", address.trim());
+    if (avatarFile) {
+      fd.append("photo", avatarFile);
+    }
+
+    try {
+      await dispatch(updateProfile(fd)).unwrap();
+      setEditing(false);
+    } catch (error) {
+      alert("Erreur lors de la mise à jour : " + error);
+    }
+  };
+
+  // ✅ valeur affichée dans la page :
+  const displayName = editing ? name : user?.name;
+
+  return (
+    <div className="container">
+      <div className="profileHeader">
+        <div>
+          <h1 className="profileTitle">Profil</h1>
+          <p className="profileSub">Gérez vos informations personnelles</p>
+        </div>
+      </div>
+
+      <section className="profileCard">
+        <div className="profileTop">
+          <div className="avatarWrap">
+            <img
+              className="avatar"
+              src={avatarPreview || user?.photo || fallbackAvatar}
+              alt={user?.name || "profil"}
+            />
+
+            {editing && (
+              <label className="avatarEdit">
+                Changer
+                <input type="file" accept="image/*" onChange={onPickAvatar} />
+              </label>
+            )}
+          </div>
+
+          <div className="profileMeta">
+            {!editing ? (
+              <>
+                <div className="profileName">{displayName || "Utilisateur"}</div>
+                <div className="profileRole">
+                  <span className="ecoDot" /> {user?.isAdmin ? "Admin" : "Client"}
+                </div>
+              </>
+            ) : (
+              <div className="profileForm">
+                <div className="field">
+                  <span className="fieldLabel">Nom</span>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Votre nom"
+                  />
+                </div>
+
+                <div className="field">
+                  <span className="fieldLabel">Téléphone</span>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Votre téléphone"
+                  />
+                </div>
+
+                <div className="field">
+                  <span className="fieldLabel">Adresse</span>
+                  <input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Votre adresse"
+                  />
+                </div>
+
+                <div className="field">
+                  <span className="fieldLabel">Email</span>
+                  <input
+                    value={user?.email || ""}
+                    disabled
+                    className="inputDisabled"
+                    placeholder="Email"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="profileActions">
+            {!editing ? (
+              <button className="pBtn pBtnPrimary" onClick={() => setEditing(true)}>
+                Modifier
+              </button>
+            ) : (
+              <>
+                <button className="pBtn pBtnPrimary" onClick={onSave} disabled={loading}>
+                  {loading ? "Enregistrement..." : "Enregistrer"}
+                </button>
+                <button className="pBtn pBtnGhost" onClick={onCancel} disabled={loading}>
+                  Annuler
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="profileGrid">
+          <div className="infoLine">
+            <span className="infoLabel">Nom</span>
+            <span className="infoValue">{displayName || "—"}</span>
+          </div>
+
+          <div className="infoLine">
+            <span className="infoLabel">Email</span>
+            <span className="infoValue">{user?.email || "—"}</span>
+          </div>
+
+          <div className="infoLine">
+            <span className="infoLabel">Téléphone</span>
+            <span className="infoValue">{user?.phone || "—"}</span>
+          </div>
+
+          <div className="infoLine">
+            <span className="infoLabel">Adresse</span>
+            <span className="infoValue">{user?.address || "—"}</span>
+          </div>
+
+          <div className="infoLine">
+            <span className="infoLabel">Rôle</span>
+            <span className="infoValue">{user?.isAdmin ? "Admin" : "Client"}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
