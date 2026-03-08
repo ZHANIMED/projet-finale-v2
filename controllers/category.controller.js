@@ -75,7 +75,7 @@ exports.remove = async (req, res, next) => {
     const { id } = req.params;
     const category = await Category.findByIdAndDelete(id);
     if (!category) return res.status(404).json({ message: "Catégorie introuvable" });
-    res.json({ message: "Deleted" });
+    res.json({ message: "Supprimé" });
   } catch (err) {
     next(err);
   }

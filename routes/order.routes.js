@@ -5,6 +5,7 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const isAuth = require("../middlewares/isAuth");
 const isAdmin = require("../middlewares/isAdmin");
+const maybeAuth = require("../middlewares/maybeAuth");
 const {
     sendOrderConfirmation,
     sendAdminOrderAlert,
@@ -13,9 +14,9 @@ const {
 
 // POST /api/orders
 // Créer une commande + décrémenter le stock + envoyer emails
-router.post("/", isAuth, async (req, res, next) => {
+router.post("/", maybeAuth, async (req, res, next) => {
     try {
-        const { items, total, shippingAddress, phone } = req.body;
+        const { items, total, shippingAddress, phone, guestName } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: "Le panier est vide" });
@@ -40,7 +41,7 @@ router.post("/", isAuth, async (req, res, next) => {
 
         // 2. Créer la commande
         const newOrder = new Order({
-            user: req.user.id,
+            user: req.user ? req.user.id : null,
             items: items.map(x => ({
                 product: x.id || x.product,
                 title: x.title,
@@ -51,18 +52,30 @@ router.post("/", isAuth, async (req, res, next) => {
             total,
             shippingAddress: shippingAddress || "Adresse non fournie",
             phone: phone || "Téléphone non fourni",
+            guestName: guestName,
             status: "Validée"
         });
 
         await newOrder.save();
 
         // 3. Récupérer les données utilisateur pour les emails
-        const userDoc = await User.findById(req.user.id).select("name email");
+        let userDoc = null;
+        if (req.user) {
+            userDoc = await User.findById(req.user.id).select("name email");
+        } else {
+            // Pour un invité, on pourrait simuler un userDoc simple si on avait son mail
+            // Mais la consigne dit juste adresse et tel.
+            // On peut envoyer une alerte admin quand même sans user confirmation.
+        }
 
         // 4. Envoyer emails (non-bloquants)
         if (userDoc) {
             sendOrderConfirmation(userDoc, newOrder);
             sendAdminOrderAlert(userDoc, newOrder);
+        } else {
+            // Alerte admin pour commande invité
+            const guestDoc = { name: newOrder.guestName || "Invité", email: "guest@example.com" };
+            sendAdminOrderAlert(guestDoc, newOrder);
         }
 
         // 5. Alerte stock = 0 si applicable

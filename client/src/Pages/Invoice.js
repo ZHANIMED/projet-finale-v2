@@ -144,7 +144,7 @@ export default function Invoice() {
                 <div style={{ marginBottom: 50, display: "flex", justifyContent: "space-between" }}>
                     <div style={{ flex: 1 }}>
                         <h4 style={{ margin: "0 0 12px", color: "#94a3b8", textTransform: "uppercase", fontSize: 11, fontWeight: 800, letterSpacing: 1 }}>CLIENT</h4>
-                        <p style={{ margin: "4px 0", fontWeight: 800, fontSize: 20, color: "#0f172a" }}>{location.state?.userName || "Client Privé"}</p>
+                        <p style={{ margin: "4px 0", fontWeight: 800, fontSize: 20, color: "#0f172a" }}>{location.state?.userName || order.guestName || "Client Privé"}</p>
                         <p style={{ margin: "6px 0", color: "#475569", fontSize: 15, lineHeight: 1.5 }}>{order.shippingAddress || "Adresse de livraison non spécifiée"}</p>
                         <p style={{ margin: "6px 0", color: "#475569", fontSize: 15 }}>📞 {order.phone || "Contact non spécifié"}</p>
                     </div>

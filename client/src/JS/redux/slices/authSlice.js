@@ -9,7 +9,7 @@ export const login = createAsyncThunk("auth/login", async (payload, thunkAPI) =>
     const { data } = await api.post("/auth/login", payload);
     return data;
   } catch (e) {
-    return thunkAPI.rejectWithValue(e.response?.data?.message || "Login error");
+    return thunkAPI.rejectWithValue(e.response?.data?.message || "Erreur de connexion");
   }
 });
 
@@ -18,7 +18,7 @@ export const register = createAsyncThunk("auth/register", async (payload, thunkA
     const { data } = await api.post("/auth/register", payload);
     return data;
   } catch (e) {
-    return thunkAPI.rejectWithValue(e.response?.data?.message || "Register error");
+    return thunkAPI.rejectWithValue(e.response?.data?.message || "Erreur d'inscription");
   }
 });
 
@@ -27,7 +27,7 @@ export const getMe = createAsyncThunk("auth/getMe", async (_, thunkAPI) => {
     const { data } = await api.get("/auth/me");
     return data;
   } catch (e) {
-    return thunkAPI.rejectWithValue(e.response?.data?.message || "Auth error");
+    return thunkAPI.rejectWithValue(e.response?.data?.message || "Erreur d'authentification");
   }
 });
 
@@ -38,7 +38,7 @@ export const updateProfile = createAsyncThunk("auth/updateProfile", async (paylo
     });
     return data;
   } catch (e) {
-    return thunkAPI.rejectWithValue(e.response?.data?.message || "Update error");
+    return thunkAPI.rejectWithValue(e.response?.data?.message || "Erreur de mise à jour");
   }
 });
 

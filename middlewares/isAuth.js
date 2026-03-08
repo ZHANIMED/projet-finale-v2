@@ -6,13 +6,13 @@ module.exports = function isAuth(req, res, next) {
     const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 
     if (!token) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.status(401).json({ message: "Non autorisé" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "MYSECRETKEY");
     req.user = decoded; // { id, isAdmin }
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Jeton invalide" });
   }
 };

@@ -30,7 +30,7 @@ exports.getOne = async (req, res, next) => {
   try {
     const { slug } = req.params;
     const product = await Product.findOne({ slug }).populate("category", "name slug");
-    if (!product) return res.status(404).json({ message: "Not found" });
+    if (!product) return res.status(404).json({ message: "Produit non trouvé" });
     res.json({ product });
   } catch (err) {
     next(err);
@@ -90,7 +90,7 @@ exports.update = async (req, res, next) => {
     if (image !== undefined) update.image = image;
 
     const product = await Product.findByIdAndUpdate(id, update, { new: true });
-    if (!product) return res.status(404).json({ message: "Not found" });
+    if (!product) return res.status(404).json({ message: "Produit non trouvé" });
     res.json({ product });
   } catch (err) {
     if (err.code === 11000) {
@@ -104,8 +104,8 @@ exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params;
     const product = await Product.findByIdAndDelete(id);
-    if (!product) return res.status(404).json({ message: "Not found" });
-    res.json({ message: "Deleted" });
+    if (!product) return res.status(404).json({ message: "Produit non trouvé" });
+    res.json({ message: "Supprimé" });
   } catch (err) {
     next(err);
   }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function ProductCard({ p, onAdd }) {
   const [qty, setQty] = useState(1);
@@ -11,8 +12,13 @@ export default function ProductCard({ p, onAdd }) {
   const inc = () => setQty((q) => q + 1);
 
   const handleAdd = () => {
+    if (qty > p?.stock) {
+      toast.error(`Stock insuffisant. Seulement ${p.stock} article(s) disponible(s).`);
+      return;
+    }
     onAdd?.(p, qty);
     setQty(1);
+    toast.success("Produit ajouté au panier !");
   };
 
   return (

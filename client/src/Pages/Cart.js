@@ -4,6 +4,7 @@ import { changeQty, removeFromCart, clearCart } from "../JS/redux/slices/cartSli
 import { Link, useNavigate } from "react-router-dom";
 import api from "../JS/api/axios";
 import { toast } from "react-toastify";
+import GuestOrderModal from "../Components/GuestOrderModal";
 
 
 export default function Cart() {
@@ -11,6 +12,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const items = useSelector((s) => s.cart.items);
   const user = useSelector((s) => s.auth.user);
+  const [showGuestModal, setShowGuestModal] = React.useState(false);
 
   // ✅ helper pour afficher en TND
   const toTND = (price) => {
@@ -20,28 +22,33 @@ export default function Cart() {
 
   const totalTND = items.reduce((sum, x) => sum + x.price * x.qty, 0);
 
-  const handleCheckout = async () => {
-    if (!user) {
-      toast.warning("🔒 Veuillez vous connecter pour valider votre commande.");
-      navigate("/login");
+  const handleCheckout = async (guestData = null) => {
+    if (!user?._id && !guestData) {
+      setShowGuestModal(true);
       return;
     }
 
     try {
+      const phone = user?._id ? user.phone : guestData.phone;
+      const address = user?._id ? user.address : guestData.address;
+      const name = user?._id ? user.name : guestData.name;
+
       const { data } = await api.post("/orders", {
         items,
         total: totalTND,
-        phone: user.phone,
-        shippingAddress: user.address,
+        phone: phone,
+        shippingAddress: address,
+        guestName: name,
       });
 
+      setShowGuestModal(false);
       dispatch(clearCart());
 
       // ✅ Redirection vers la facture avec les données
       navigate("/invoice", {
         state: {
           order: data.order || data,
-          userName: user.name
+          userName: name
         }
       });
     } catch (error) {
@@ -91,6 +98,7 @@ export default function Cart() {
                   </button>
                   <span>{x.qty}</span>
                   <button
+                    disabled={x.qty >= (x.stock || 999)}
                     onClick={() => dispatch(changeQty({ id: x.id, qty: x.qty + 1 }))}
                   >
                     +
@@ -126,6 +134,12 @@ export default function Cart() {
           </div>
         </>
       )}
+
+      <GuestOrderModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        onConfirm={(data) => handleCheckout(data)}
+      />
     </div>
   );
 }

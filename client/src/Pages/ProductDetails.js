@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../JS/redux/slices/cartSlice";
+import { toast } from "react-toastify";
 
 export default function ProductDetails() {
   const { slug } = useParams();
@@ -21,6 +22,10 @@ export default function ProductDetails() {
 
   const add = () => {
     if (!product) return;
+    if (qty > product.stock) {
+      toast.error(`Stock insuffisant. Seulement ${product.stock} article(s) disponible(s).`);
+      return;
+    }
     dispatch(
       addToCart({
         product: {
@@ -29,11 +34,13 @@ export default function ProductDetails() {
           price: product.price, // ✅ TND
           image: product.image,
           slug: product.slug,
+          stock: product.stock, // On passe le stock au slice pour validation cumulative
         },
         qty,
       })
     );
     setQty(1);
+    toast.success("Produit ajouté au panier !");
   };
 
   if (loading) return <div className="container"><p>Chargement...</p></div>;

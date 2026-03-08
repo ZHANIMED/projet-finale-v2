@@ -59,6 +59,7 @@ export default function Products() {
           price: p.price, // ✅ TND stocké
           image: p.image,
           slug: p.slug,
+          stock: p.stock,
         },
         qty,
       })

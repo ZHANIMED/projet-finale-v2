@@ -19,7 +19,7 @@ exports.register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already used" });
+    if (exists) return res.status(409).json({ message: "E-mail déjà utilisé" });
 
     const user = await User.create({ name, email, password, isAdmin: false });
     const token = signToken(user);
@@ -55,10 +55,10 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) return res.status(401).json({ message: "Identifiants invalides" });
 
     const ok = await user.comparePassword(password);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+    if (!ok) return res.status(401).json({ message: "Identifiants invalides" });
 
     const token = signToken(user);
 
@@ -89,7 +89,7 @@ exports.login = async (req, res, next) => {
 exports.me = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
 
     res.json({
       user: {
